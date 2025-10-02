@@ -43,6 +43,7 @@ class AcquisitionContainer():
         self.ROIs = []
         self.ScannerParameters = ''
         self.constructor = ''
+        self.newFormat = False
 
 
         acqParsePlan = {}
@@ -51,6 +52,7 @@ class AcquisitionContainer():
             acq_plan_obj = hdf_file['AcquisitionContainer']['AcquisitionPlan']
             if isinstance(acq_plan_obj, h5py.Group):
                 print('[WARNING] Failed on old SLAP2 metadata format. Trying on new format...')
+                self.newFormat = True
                 self.DmdPatternSequence = hdf_file['AcquisitionContainer']['DmdPatternSequence'][:]
 
                 self.AcquisitionPlan = {}
