@@ -44,22 +44,22 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:zoom="1.1316667"
-     inkscape:cx="277.02503"
-     inkscape:cy="424.15315"
+     inkscape:zoom="0.37432538"
+     inkscape:cx="-464.83623"
+     inkscape:cy="813.4634"
      inkscape:window-width="1920"
-     inkscape:window-height="1054"
+     inkscape:window-height="1016"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g8661" />
+     inkscape:current-layer="g1738" />
   <g
      id="flowchart"
      transform="translate(-32.599014,-25.913349)">
     <rect
-       style="fill:#264d59;fill-opacity:0.80000001;stroke:none;stroke-width:2.53333;stroke-linejoin:bevel;stroke-dashoffset:0.33789;stroke-opacity:0.9"
+       style="fill:#264d59;fill-opacity:0.8;stroke:none;stroke-width:2.53333;stroke-linejoin:bevel;stroke-dashoffset:0.33789;stroke-opacity:0.9"
        id="rect2029"
-       width="556.34521"
+       width="556.34497"
        height="924.41656"
        x="32.599014"
        y="25.913349"
@@ -76,13 +76,13 @@
          y="49.880352"
          style="font-weight:bold">DataFile Object</tspan></text>
     <rect
-       style="fill:#439778;fill-opacity:0.80000001;stroke:none;stroke-width:3.07204;stroke-linejoin:bevel;stroke-dashoffset:0.33789;stroke-opacity:0.9"
+       style="fill:#439778;fill-opacity:0.8;stroke:none;stroke-width:3.26379;stroke-linejoin:bevel;stroke-dashoffset:0.33789;stroke-opacity:0.9"
        id="rect2295"
-       width="448.46225"
-       height="499.37704"
-       x="86.540497"
-       y="282.57959"
-       ry="76.424759" />
+       width="490"
+       height="515.88007"
+       x="65.7715"
+       y="273.64972"
+       ry="78.950394" />
     <g
        id="boxes" />
     <g
@@ -105,7 +105,7 @@
     </g>
     <g
        id="g1758"
-       transform="translate(-139.83385,468.67514)">
+       transform="matrix(1.2468986,0,0,0.99973903,-251.08783,458.69291)">
       <rect
          x="270.60547"
          y="251.30948"
@@ -119,7 +119,7 @@
          text-anchor="middle"
          alignment-baseline="middle"
          font-size="14px"
-         id="text24">Load parse plan details from MetaData</text>
+         id="text24" />
     </g>
     <path
        d="M 497.18022,162.64975 H 602.96233"
@@ -131,11 +131,11 @@
        id="g3006"
        transform="translate(12.506737,20)">
       <rect
-         x="118.26488"
-         y="42.552689"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="73.822289"
+         y="42.61021"
+         width="448.88495"
+         height="39.88496"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11504"
          id="rect6" />
       <g
          id="g2912">
@@ -150,11 +150,11 @@
            id="g1394"
            transform="translate(-1.2090192,31.243204)">
           <rect
-             x="119.47391"
-             y="91.309486"
-             width="360"
-             height="40"
-             style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+             x="75.031845"
+             y="91.367538"
+             width="448.88388"
+             height="39.961296"
+             style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11611"
              id="rect10" />
           <text
              x="299.47391"
@@ -168,11 +168,11 @@
            id="g1402"
            transform="translate(20.790999,31.243204)">
           <rect
-             x="97.473892"
-             y="171.30948"
-             width="360"
-             height="40"
-             style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+             x="53.031822"
+             y="171.29013"
+             width="448.88388"
+             height="39.961296"
+             style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11611"
              id="rect14" />
           <text
              x="277.47391"
@@ -208,11 +208,11 @@
        id="g2005"
        transform="translate(33.297726,388.73655)">
       <rect
-         x="97.473892"
-         y="411.30948"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="53.031834"
+         y="411.36752"
+         width="448.88388"
+         height="39.961296"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11611"
          id="rect30" />
       <text
          x="277.47391"
@@ -222,11 +222,11 @@
          font-size="14px"
          id="text32">Load raw data using np.memmap</text>
       <rect
-         x="97.4739"
-         y="491.30948"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="53.031834"
+         y="491.29013"
+         width="448.88388"
+         height="39.961296"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11611"
          id="rect38" />
       <text
          x="277.47391"
@@ -245,11 +245,11 @@
        id="g1738"
        transform="translate(-126.70229,-257.73025)">
       <rect
-         x="257.47391"
-         y="571.30951"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="213.03204"
+         y="571.36774"
+         width="448.88348"
+         height="39.989559"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.1165"
          id="rect42" />
       <text
          x="437.47391"
@@ -259,11 +259,11 @@
          font-size="14px"
          id="text44">Initialize MetaData object</text>
       <rect
-         x="257.47391"
-         y="651.30951"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="213.03204"
+         y="651.34686"
+         width="448.88348"
+         height="39.989559"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.1165"
          id="rect46" />
       <text
          x="437.47391"
@@ -273,11 +273,11 @@
          font-size="14px"
          id="text48">Read HDF5 file contents into MetaData attributes</text>
       <rect
-         x="257.47391"
-         y="731.30951"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="213.03204"
+         y="731.32599"
+         width="448.88348"
+         height="39.989559"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.1165"
          id="rect50" />
       <text
          x="437.47391"
@@ -287,11 +287,11 @@
          font-size="14px"
          id="text52">Initialize AcquisitionContainer with metadatafile</text>
       <rect
-         x="257.47391"
-         y="811.30951"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="213.03204"
+         y="811.30511"
+         width="448.88348"
+         height="39.989559"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.1165"
          id="rect54" />
       <text
          x="437.47391"
@@ -301,11 +301,11 @@
          font-size="14px"
          id="text56">Read acquisition-related details from HDF5 file</text>
       <rect
-         x="257.47391"
-         y="891.30951"
-         width="360"
-         height="40"
-         style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+         x="213.03204"
+         y="891.28424"
+         width="448.88348"
+         height="39.989559"
+         style="fill:#d3d3d3;stroke:#000000;stroke-width:1.1165"
          id="rect58" />
       <text
          x="437.47391"
@@ -334,27 +334,34 @@
          marker-end="url(#arrowhead)"
          id="path105"
          style="fill:none;stroke:#000000;stroke-width:1" />
+      <text
+         x="437.42252"
+         y="991.52417"
+         text-anchor="middle"
+         alignment-baseline="middle"
+         font-size="14px"
+         id="text60-3">Load parse plan details from MetaData</text>
     </g>
     <g
        id="g8661"
        transform="translate(-493.65666,404.88498)">
       <rect
-         style="fill:#f9e07f;fill-opacity:0.87451;stroke:none;stroke-width:2.24592;stroke-linejoin:bevel;stroke-dashoffset:0.33789;stroke-opacity:0.9"
+         style="fill:#f9e07f;fill-opacity:0.87451;stroke:none;stroke-width:2.7061;stroke-linejoin:bevel;stroke-dashoffset:0.33789;stroke-opacity:0.9"
          id="rect3030"
-         width="383.21643"
+         width="556.34497"
          height="287.25516"
-         x="612.82007"
+         x="526.25568"
          y="573.47034"
          ry="54.814774" />
       <g
          id="g3267"
          transform="translate(366.95438,-353.64811)">
         <rect
-           x="257.47391"
-           y="971.30951"
-           width="360"
-           height="40"
-           style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+           x="213.03195"
+           y="971.36768"
+           width="448.88367"
+           height="39.976734"
+           style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11632"
            id="rect62" />
         <text
            x="437.47391"
@@ -364,11 +371,11 @@
            font-size="14px"
            id="text64">Initialize Trace object with dataFile, zIdx, and chIdx</text>
         <rect
-           x="257.47391"
-           y="1051.3094"
-           width="360"
-           height="40"
-           style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+           x="213.03195"
+           y="1051.321"
+           width="448.88367"
+           height="39.976734"
+           style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11632"
            id="rect66" />
         <text
            x="437.47391"
@@ -378,11 +385,11 @@
            font-size="14px"
            id="text68">Initialize TracePixel objects for valid superpixel IDs</text>
         <rect
-           x="257.47391"
-           y="1131.3094"
-           width="360"
-           height="40"
-           style="fill:#d3d3d3;stroke:#000000;stroke-width:1"
+           x="213.03195"
+           y="1131.2745"
+           width="448.88367"
+           height="39.976734"
+           style="fill:#d3d3d3;stroke:#000000;stroke-width:1.11632"
            id="rect70" />
         <text
            x="437.47391"

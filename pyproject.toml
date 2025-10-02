@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["cython", "hatchling", "hatch-cython==0.6.0rc0", "numpy"]
+build-backend = "hatchling.build"
 
 [project]
 name = "SLAP2_UTILS"
-version = "0.5.1"
+version = "0.6.1"
 authors = [
   { name="Peter Hogg", email="peterhogg2006@gmail.com" },
   { name="Jerry Tong", email="jerrytong0810@gmail.com" }
@@ -56,3 +56,12 @@ Issues = "https://github.com/Peter-Hogg/SLAP2_Utils/issues"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["slap2_utils", "slap2_utils.*"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["slap2_utils"]
+artifacts = ["*.so"]
+
+[tool.hatch.build.targets.wheel.hooks.cython.options]
+include_numpy = true
+src = "."
+files = {targets = ["**/*.pyx"]}

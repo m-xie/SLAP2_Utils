@@ -43,7 +43,6 @@ class AcquisitionContainer():
         self.ROIs = []
         self.ScannerParameters = ''
         self.constructor = ''
-        self.newFormat = False
 
 
         acqParsePlan = {}
