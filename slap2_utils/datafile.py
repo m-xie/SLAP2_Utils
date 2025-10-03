@@ -148,7 +148,7 @@ class DataFile():
                     else:
                         self.lineFastZIdxs[lineIdx] = lineZIdxs_[0][0] + 1
             else:
-                print('Using new metadata format...')
+                # print('Using new metadata format...')
 
                 self.fastZs = np.unique(np.concatenate([zs for zs in metaData.AcquisitionContainer.AcquisitionPlan['activeZs'] if zs.size > 0]))
                 self.lineSuperPixelIDs = metaData.AcquisitionContainer.AcquisitionPlan['superPixelIDs']
