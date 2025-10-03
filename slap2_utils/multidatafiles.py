@@ -184,12 +184,20 @@ class MultiDataFiles:
         localCycleIdxs = np.asarray(localCycleIdxs, dtype=np.int64)
         lineIndices = np.asarray(lineIndices, dtype=np.int64).ravel()
 
+        # If cycle indices are omitted, global line indices may exceed linesPerCycle;
+        # convert them to per-cycle (local) line indices for underlying DataFile API.
+        if cycleIndices is None:
+            lines_per_cycle = int(self.header['linesPerCycle'])
+            localLineIdxs = ((lineIndices - 1) % lines_per_cycle) + 1
+        else:
+            localLineIdxs = lineIndices
+
         unique_files = np.unique(fileIdxs)
         outputs: List[Optional[np.ndarray]] = [None] * lineIndices.shape[0]
 
         for uf in unique_files:
             mask = (fileIdxs == uf)
-            li = lineIndices[mask]
+            li = localLineIdxs[mask]
             ci = localCycleIdxs[mask]
             block = self.hDataFiles[int(uf) - 1].getLineData(li, ci, iChannel)
             # `block` is a list aligned with the local mask ordering
