@@ -68,6 +68,8 @@ class MultiDataFiles:
         self.lineDataStartIdxs = first.lineDataStartIdxs
         self.lineDataNumElements = first.lineDataNumElements
         self.datFileName = first.datFileName
+        self.lineSuperPixelIDs = first.lineSuperPixelIDs
+        self.lineFastZIdxs = first.lineFastZIdxs
 
         # Aggregates
         self.numCycles = int(np.sum([df.numCycles for df in self.hDataFiles]))

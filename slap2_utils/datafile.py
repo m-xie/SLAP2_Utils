@@ -110,12 +110,13 @@ class DataFile():
         # Loading file names and check whether file is found
         base_dir, filename = os.path.split(self.filename)
         n_base = re.sub(r'-TRIAL\d+','',os.path.splitext(filename)[0],flags=re.IGNORECASE)
+        n_base = re.sub(r'-CYCLE\d+','',n_base,flags=re.IGNORECASE)
 
         self.metaDataFileName = os.path.join(base_dir, n_base + '.meta')
         self.datFileName = os.path.join(base_dir, filename)
 
         if not os.path.isfile(self.metaDataFileName):
-            raise FileNotFoundError('Metadata file not found.')
+            raise FileNotFoundError(f'Metadata file not found: {self.metaDataFileName}')
         self.metaData = MetaData(self.metaDataFileName)
         # Subfunction of loading parse plan
         def load_parse_plan(self, metaData):   
