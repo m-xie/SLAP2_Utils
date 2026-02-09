@@ -1,5 +1,6 @@
 # Subclasses of the primary SLAP2 Datafile
 import h5py
+import numpy as np
 from .slapROI import slapROI
 from .acquisitionContainer import AcquisitionContainer
 
@@ -74,16 +75,44 @@ class MetaData():
         self.remoteFocusPosition_um = ''
         self.samplesPerLine = ''
 
+        def group_to_dict(hdf5_group, rfs):
+            output = {}
+            for key in hdf5_group.keys():
+                if isinstance(hdf5_group[key], h5py.Group):
+                    output[key] = group_to_dict(hdf5_group[key], rfs)
+                else:
+                    if isinstance(hdf5_group[key][:], np.ndarray) and hdf5_group[key][:].squeeze().ndim > 0 and hdf5_group[key][:].squeeze().size > 0 and isinstance(hdf5_group[key][:].squeeze()[0], h5py.Reference):
+                        output[key] = []
+                        for ref in hdf5_group[key][:].squeeze():
+                            output[key].append(rfs[ref][:].squeeze())
+                    else:
+                        output[key] = hdf5_group[key][:].squeeze()
+            return output
+        
         with h5py.File(metadatafile, 'r') as hdf_file:
         # Read the contents of the HDF5 file into the metaData dictionary
 
             metaData = dict(hdf_file)
             for _key in metaData.keys():
-                try:
-                    metaData[_key] = hdf_file[_key][:][0][0]
-                    setattr(self, _key, hdf_file[_key][:][0][0])
-                except:   
-                    metaData[_key] = hdf_file[_key]
-                    
+                if _key == 'acquisitionPathName':
+                    self.acquisitionPathName = ''.join(chr(x[0]) for x in hdf_file['acquisitionPathName'][:])
+                elif _key == 'machineConfiguration':
+                    num_devices = hdf_file[_key]['instanceName'].shape[1]
+                    self.machineConfiguration = []
+                    refs = hdf_file['#refs#']
+                    for i in range(num_devices):
+                        device_config_dict = {}
+                        for prop in ['instanceName', 'instanceClass']:
+                            device_config_dict[prop] = ''.join(chr(int(x)) for x in refs[hdf_file[_key][prop][0,i]][:].flatten())
+                        
+                        device_config_dict['configuration'] = group_to_dict(refs[hdf_file[_key]['configuration'][0,i]], refs)
+                        self.machineConfiguration.append(device_config_dict)
+                else:
+                    try:
+                        metaData[_key] = hdf_file[_key][:].squeeze()
+                        setattr(self, _key, hdf_file[_key][:].squeeze())
+                    except:   
+                        metaData[_key] = hdf_file[_key]
+                        
                 
             self.AcquisitionContainer = AcquisitionContainer(self.metadatafile)
