@@ -127,3 +127,6 @@ class AcquisitionContainer():
                     _refs.append(hdf_file['AcquisitionContainer']['ParsePlan']['pixelReplacementMaps'][:][index][0])
                 self.AcquisitionPlan['pixelReplacementMaps'] = [hdf_file[_ref][:] for _ref in _refs]
                 self.AcquisitionPlan['acqParsePlan'] = acqParsePlan['acqParsePlan']
+                
+                # Create a reference to AcquisitionPlan so ParsePlan points to the same object
+                self.ParsePlan = self.AcquisitionPlan
