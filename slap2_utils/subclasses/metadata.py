@@ -71,7 +71,7 @@ class MetaData():
         self.dmdPixelsPerRow = ''
         self.enableStack = ''
         self.linePeriod_s = ''
-        #machineConfiguration <HDF5 group "/machineConfiguration" (3 members)>
+        self.machineConfiguration = []
         self.remoteFocusPosition_um = ''
         self.samplesPerLine = ''
 
@@ -98,7 +98,6 @@ class MetaData():
                     self.acquisitionPathName = ''.join(chr(x[0]) for x in hdf_file['acquisitionPathName'][:])
                 elif _key == 'machineConfiguration':
                     num_devices = hdf_file[_key]['instanceName'].shape[1]
-                    self.machineConfiguration = []
                     refs = hdf_file['#refs#']
                     for i in range(num_devices):
                         device_config_dict = {}
