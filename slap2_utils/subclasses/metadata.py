@@ -74,6 +74,7 @@ class MetaData():
         self.machineConfiguration = []
         self.remoteFocusPosition_um = ''
         self.samplesPerLine = ''
+        self.aomPowerFractionTarget = None
 
         def group_to_dict(hdf5_group, rfs):
             output = {}
