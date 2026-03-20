@@ -105,7 +105,12 @@ class MetaData():
                         for prop in ['instanceName', 'instanceClass']:
                             device_config_dict[prop] = ''.join(chr(int(x)) for x in refs[hdf_file[_key][prop][0,i]][:].flatten())
                         
-                        device_config_dict['configuration'] = group_to_dict(refs[hdf_file[_key]['configuration'][0,i]], refs)
+                        try:
+                            device_config_dict['configuration'] = group_to_dict(refs[hdf_file[_key]['configuration'][0,i]], refs)
+                        except:
+                            # TODO: Handle the error case
+                            print(f"Warning: No configuration found for device {device_config_dict['instanceName']}")
+                            device_config_dict['configuration'] = None
                         self.machineConfiguration.append(device_config_dict)
                 else:
                     try:
