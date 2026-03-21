@@ -172,15 +172,13 @@ class DataFile():
 
         if not os.path.isfile(self.datFileName):
             raise FileNotFoundError('Data file not found.')
-        self.rawData = np.memmap(self.filename, dtype='uint32')
-        self.header = self.load_file_header(self.rawData)
-        
+        self.rawData = np.memmap(self.filename, dtype='int16')
+        self.load_file_header()
 
-    # Function for loading file header:
-    def load_file_header(self, rawData):
-        raw_data = np.frombuffer(rawData, dtype=np.uint32)
-        if raw_data.dtype != 'uint32':
-            raw_data.dtype('uint32')
+
+    def load_file_header(self):
+        nbytes = len(self.rawData) * self.rawData.itemsize
+        raw_data = np.frombuffer(self.rawData, dtype=np.uint32, count=nbytes // 4)
 
         # See if magic number matches, returns an error if that is not the case
         file_magic_number = raw_data[0]
@@ -195,39 +193,36 @@ class DataFile():
         else:
             raise ValueError(f'Unknown file format version: {file_format_version}')
 
+        self.header = header
+
         # Load Indices
-        raw_data  =  np.frombuffer(raw_data, dtype=np.uint16)
-        if raw_data.dtype != 'uint16':
-            raw_data.astype('uint16')
+        raw_data_int16 = np.frombuffer(self.rawData, dtype=np.int16)
 
-        # Load different fields in the object accordingly
+        lines_per_cycle = int(header['linesPerCycle'])
+        line_idxs = np.zeros(lines_per_cycle, dtype=int)
+        line_size_bytes = np.zeros(lines_per_cycle, dtype=np.uint32)
+        line_idxs[0] = int(header['firstCycleOffsetBytes']) // 2 + 1
+        line_size_bytes[0] = np.frombuffer(
+            raw_data_int16[line_idxs[0]-1:line_idxs[0]+1].tobytes(), dtype=np.uint32
+        )[0]
 
-        line_idxs = np.zeros(int(header['linesPerCycle']), dtype=int)
-        line_size_bytes = np.zeros(int(header['linesPerCycle']), dtype=np.uint32)
-        line_idxs[0] = header['firstCycleOffsetBytes'] // 2 + 1
-        line_size_bytes[0] = raw_data[line_idxs[0]-1]
-        for idx in range(1, int(header['linesPerCycle'])):
+        for idx in range(1, lines_per_cycle):
             line_idxs[idx] = line_idxs[idx - 1] + line_size_bytes[idx - 1] // 2
-            line_size_bytes[idx] = raw_data[line_idxs[idx]-1]
+            line_size_bytes[idx] = np.frombuffer(
+                raw_data_int16[line_idxs[idx]-1:line_idxs[idx]+1].tobytes(), dtype=np.uint32
+            )[0]
 
-
-        line_header_idxs = line_idxs
-        self.lineDataStartIdxs = line_idxs + header['lineHeaderSizeBytes'] // 2
-        self.lineDataNumElements = (line_size_bytes - header['lineHeaderSizeBytes']) // 2
+        self.lineHeaderIdxs = line_idxs
+        self.lineDataStartIdxs = line_idxs + int(header['lineHeaderSizeBytes']) // 2
+        self.lineDataNumElements = (line_size_bytes - int(header['lineHeaderSizeBytes'])) // 2
         self.lineDataNumElements = [int(x) for x in self.lineDataNumElements]
-        self.lineDataStartIdxs = [int(x) for x in self.lineDataStartIdxs] 
+        self.lineDataStartIdxs = [int(x) for x in self.lineDataStartIdxs]
 
-
-
-        # May need to update this conditional in the future
-        #if not 'referenceTimestamp' in list(header.keys()):
-        #    header.referenceTimestamp = np.uint64(0)
-        #    first_line_header = self.get_line_header(1, 1)
-        #    self.header.referenceTimestamp = first_line_header.timestamp
-        
-        #first_line_header = obj.get_line_header(1, 1)
-        #obj.header.referenceTimestamp = first_line_header.timestamp
-        return header
+        if 'referenceTimestamp' not in header:
+            header['referenceTimestamp'] = np.uint64(0)
+            # TODO: uncomment when getLineHeader is implemented
+            # first_line_header = self.getLineHeader(1, 1)
+            # header['referenceTimestamp'] = first_line_header['timestamp']
 
     def getLineData(self, lineIndices, cycleIndices, iChannel=None, method="Cython"):
         """Get line data from the data file.
