@@ -172,7 +172,7 @@ class DataFile():
 
         if not os.path.isfile(self.datFileName):
             raise FileNotFoundError('Data file not found.')
-        self.rawData = np.memmap(self.filename, dtype='int16')
+        self.rawData = np.memmap(self.filename, dtype='int16', mode='r')
         self.load_file_header()
 
 
