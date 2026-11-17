@@ -4,6 +4,7 @@ import re
 
 from .subclasses.metadata import MetaData
 from .utils.file_header import load_file_header_v2
+from .utils.line_header import parseLineHeader
 
 
 class DataFile():
@@ -100,6 +101,7 @@ class DataFile():
         self.lineDataNumElements = []
         self.lineDataStartIdxs = []
         self.numCycles=0
+        self.firstLineTimestamp = np.uint64(0)
 
         self._load_file()
          
@@ -220,9 +222,121 @@ class DataFile():
 
         if 'referenceTimestamp' not in header:
             header['referenceTimestamp'] = np.uint64(0)
-            # TODO: uncomment when getLineHeader is implemented
-            # first_line_header = self.getLineHeader(1, 1)
-            # header['referenceTimestamp'] = first_line_header['timestamp']
+            first_line_header = self.getLineHeader(1, 1)
+            header['referenceTimestamp'] = first_line_header['timestamp']
+
+        first_line_header = self.getLineHeader(1, 1)
+        self.firstLineTimestamp = first_line_header['timestamp']
+
+    def getLineHeader(self, lineIndices, cycleIndices):
+        """Get parsed line headers from the data file.
+
+        Parameters
+        ----------
+        lineIndices : array_like
+            Positive one-based line indices within a cycle.
+        cycleIndices : array_like
+            Positive one-based cycle indices. A scalar is broadcast across
+            multiple line indices.
+
+        Returns
+        -------
+        dict or list of dict
+            One dictionary for scalar input, otherwise dictionaries in input
+            order.
+        """
+        lineValues = np.asarray(lineIndices)
+        cycleValues = np.asarray(cycleIndices)
+        scalarResult = lineValues.ndim == 0 and cycleValues.ndim == 0
+
+        lineValues = lineValues.ravel()
+        cycleValues = cycleValues.ravel()
+        if lineValues.size == 0 and cycleValues.size == 0:
+            return []
+        if cycleValues.size == 1 and lineValues.size > 1:
+            cycleValues = np.full(lineValues.shape, cycleValues[0])
+        if lineValues.size != cycleValues.size:
+            raise ValueError("Number of cycle indices must match number of line indices")
+
+        try:
+            finite = np.all(np.isfinite(lineValues)) and np.all(np.isfinite(cycleValues))
+            integral = (np.all(lineValues == np.floor(lineValues)) and
+                        np.all(cycleValues == np.floor(cycleValues)))
+        except TypeError as exc:
+            raise ValueError("All indices must be finite integers") from exc
+        if not finite or not integral:
+            raise ValueError("All indices must be finite integers")
+
+        lineValues = lineValues.astype(np.int64)
+        cycleValues = cycleValues.astype(np.int64)
+        if np.any(lineValues <= 0) or np.any(cycleValues <= 0):
+            raise ValueError("All indices must be positive integers (Matlab indexing)")
+        if np.any(lineValues > int(self.header['linesPerCycle'])):
+            raise ValueError("Line indices must be <= linesPerCycle")
+        if np.any(cycleValues > self.numCycles):
+            raise ValueError("Cycle indices must be <= numCycles")
+
+        headerSizeBytes = int(self.header['lineHeaderSizeBytes'])
+        headerSizeElements = headerSizeBytes // self.rawData.itemsize
+        bytesPerCycle = int(self.header['bytesPerCycle'])
+        headers = []
+        for lineIndex, cycleIndex in zip(lineValues, cycleValues):
+            start = (int(self.lineHeaderIdxs[lineIndex - 1]) - 1 +
+                     (cycleIndex - 1) * bytesPerCycle // self.rawData.itemsize)
+            rawHeader = self.rawData[start:start + headerSizeElements].tobytes()
+            headers.append(parseLineHeader(
+                rawHeader,
+                fpgaSystemClock_Hz=self.header.get('fpgaSystemClock_Hz'),
+                referenceTimestamp=self.header.get('referenceTimestamp'),
+            ))
+
+        return headers[0] if scalarResult else headers
+
+    def getOnlineMotion(self, lineIds=None):
+        """Read online motion offsets for one-based global line IDs.
+
+        Parameters
+        ----------
+        lineIds : array_like, optional
+            One-based global line IDs. By default, read the first line of
+            every cycle.
+
+        Returns
+        -------
+        tuple of numpy.ndarray
+            One-dimensional X pixel, Y pixel, and Z micrometer offsets.
+        """
+        linesPerCycle = int(self.header['linesPerCycle'])
+        totalLines = linesPerCycle * self.numCycles
+        if lineIds is None:
+            lineIds = np.arange(1, totalLines + 1, linesPerCycle, dtype=np.int64)
+
+        values = np.asarray(lineIds).ravel()
+        if values.size == 0:
+            empty = np.empty(0, dtype=np.float64)
+            return empty.copy(), empty.copy(), empty
+        try:
+            valid = (np.all(np.isfinite(values)) and
+                     np.all(values == np.floor(values)) and
+                     np.all(values >= 1) and np.all(values <= totalLines))
+        except TypeError:
+            valid = False
+        if not valid:
+            raise ValueError(
+                f"lineIds must be finite integer indices in [1, {totalLines}]"
+            )
+
+        values = values.astype(np.int64)
+        cycleIndices = (values - 1) // linesPerCycle + 1
+        lineIndices = (values - 1) % linesPerCycle + 1
+        headers = self.getLineHeader(lineIndices, cycleIndices)
+        if isinstance(headers, dict):
+            headers = [headers]
+
+        x = np.asarray([header['xOffset_pix'] for header in headers], dtype=np.float64)
+        y = np.asarray([header['yOffset_pix'] for header in headers], dtype=np.float64)
+        z = np.asarray([header['zOffset_um'] for header in headers], dtype=np.float64)
+        return x, y, z
 
     def getLineData(self, lineIndices, cycleIndices, iChannel=None, method="Cython"):
         """Get line data from the data file.

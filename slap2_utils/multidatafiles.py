@@ -21,12 +21,6 @@ class MultiDataFiles:
     - Expose key `DataFile`-like attributes from the first file for convenience
       and compute aggregate counters like `numCycles` and `totalNumLines`.
 
-    Notes
-    -----
-    The current Python `DataFile` implementation does not expose
-    `getLineHeader` or `firstLineTimestamp`. Hence, for sorting we use a stable
-    natural order on filenames as a reasonable approximation. If timestamp
-    metadata becomes available, update `_sort_files_in_place` accordingly.
     """
 
     def __init__(self, filename: Optional[str] = None):
@@ -67,6 +61,7 @@ class MultiDataFiles:
         self.metaData = first.metaData
         self.lineDataStartIdxs = first.lineDataStartIdxs
         self.lineDataNumElements = first.lineDataNumElements
+        self.lineHeaderIdxs = first.lineHeaderIdxs
         self.datFileName = first.datFileName
         self.lineSuperPixelIDs = first.lineSuperPixelIDs
         self.lineFastZIdxs = first.lineFastZIdxs
@@ -79,11 +74,10 @@ class MultiDataFiles:
         """
         Sort constituent `DataFile` instances in-place.
 
-        If future `DataFile` exposes a reliable per-file timestamp such as
-        `firstLineTimestamp`, sort by that. For now, sort by a tuple of
-        (cycle_index_extracted_from_name, filename) to achieve stable ordering.
+        Prefer the same first-line FPGA timestamp used by the MATLAB reader.
+        Fall back to a filename cycle index for older custom DataFile objects.
         """
-        def extract_cycle_index(df: DataFile) -> int:
+        def extractCycleIndex(df: DataFile) -> int:
             name = os.path.splitext(os.path.basename(df.datFileName))[0]
             m = re.search(r"-CYCLE-?([0-9]+)$", name, flags=re.IGNORECASE)
             if m:
@@ -100,7 +94,16 @@ class MultiDataFiles:
                     return 1_000_000_000
             return 1_000_000_000
 
-        self.hDataFiles.sort(key=lambda df: (extract_cycle_index(df), df.datFileName))
+        def sortKey(df: DataFile):
+            timestamp = getattr(df, 'firstLineTimestamp', None)
+            if timestamp is not None:
+                try:
+                    return 0, int(timestamp), df.datFileName
+                except (TypeError, ValueError):
+                    pass
+            return 1, extractCycleIndex(df), df.datFileName
+
+        self.hDataFiles.sort(key=sortKey)
 
     # ----------------------------- Public API ------------------------------
     def delete(self) -> None:
@@ -209,5 +212,74 @@ class MultiDataFiles:
 
         # type: ignore - all entries must be filled by construction
         return outputs  # type: ignore[return-value]
+
+    def getLineHeader(self, lineIndices, cycleIndices):
+        """Retrieve parsed line headers spanning constituent data files.
+
+        Indices are one-based for compatibility with ``DataFile`` and the
+        MATLAB reader. A scalar cycle index is broadcast across line indices.
+        """
+        lineValues = np.asarray(lineIndices)
+        cycleValues = np.asarray(cycleIndices)
+        scalarResult = lineValues.ndim == 0 and cycleValues.ndim == 0
+        lineValues = lineValues.ravel()
+        cycleValues = cycleValues.ravel()
+        if lineValues.size == 0 and cycleValues.size == 0:
+            return []
+        if cycleValues.size == 1 and lineValues.size > 1:
+            cycleValues = np.full(lineValues.shape, cycleValues[0])
+        if lineValues.size != cycleValues.size:
+            raise ValueError("Number of cycle indices must match number of line indices")
+
+        _, _, fileIndices, localCycles = self.getLineDataIdxs(
+            lineValues, cycleValues
+        )
+        lineValues = lineValues.astype(np.int64)
+        outputs = [None] * lineValues.size
+        for fileIndex in np.unique(fileIndices):
+            mask = fileIndices == fileIndex
+            headers = self.hDataFiles[int(fileIndex) - 1].getLineHeader(
+                lineValues[mask], localCycles[mask]
+            )
+            if isinstance(headers, dict):
+                headers = [headers]
+            for outputIndex, header in zip(np.flatnonzero(mask), headers):
+                outputs[outputIndex] = header
+
+        return outputs[0] if scalarResult else outputs
+
+    def getOnlineMotion(self, lineIds=None):
+        """Read online offsets for one-based global line IDs."""
+        linesPerCycle = int(self.header['linesPerCycle'])
+        totalLines = self.totalNumLines
+        if lineIds is None:
+            lineIds = np.arange(1, totalLines + 1, linesPerCycle, dtype=np.int64)
+
+        values = np.asarray(lineIds).ravel()
+        if values.size == 0:
+            empty = np.empty(0, dtype=np.float64)
+            return empty.copy(), empty.copy(), empty
+        try:
+            valid = (np.all(np.isfinite(values)) and
+                     np.all(values == np.floor(values)) and
+                     np.all(values >= 1) and np.all(values <= totalLines))
+        except TypeError:
+            valid = False
+        if not valid:
+            raise ValueError(
+                f"lineIds must be finite integer indices in [1, {totalLines}]"
+            )
+
+        values = values.astype(np.int64)
+        lineIndices = (values - 1) % linesPerCycle + 1
+        cycleIndices = (values - 1) // linesPerCycle + 1
+        headers = self.getLineHeader(lineIndices, cycleIndices)
+        if isinstance(headers, dict):
+            headers = [headers]
+
+        x = np.asarray([header['xOffset_pix'] for header in headers], dtype=np.float64)
+        y = np.asarray([header['yOffset_pix'] for header in headers], dtype=np.float64)
+        z = np.asarray([header['zOffset_um'] for header in headers], dtype=np.float64)
+        return x, y, z
 
 
