@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pytest
 
+import slap2_utils.datafile as datafile_module
 from slap2_utils.datafile import DataFile
 from slap2_utils.utils.line_header import LINE_HEADER_MAGIC
 
@@ -69,3 +70,30 @@ def test_get_line_header_rejects_invalid_indices(
 
 def test_datafile_records_first_line_timestamp(datafile):
     assert datafile.firstLineTimestamp == np.uint64(807_174_241_522)
+
+
+def test_datafile_with_no_complete_cycles_skips_first_line_header(monkeypatch):
+    datafile = DataFile.__new__(DataFile)
+    datafile.MAGIC_NUMBER = np.uint32(LINE_HEADER_MAGIC)
+    datafile.rawData = np.zeros(6, dtype=np.int16)
+    datafile.rawData.view(np.uint32)[0] = LINE_HEADER_MAGIC
+    datafile.rawData.view(np.uint32)[1] = 2
+    datafile.rawData.view(np.uint32)[2] = 40
+    datafile.firstLineTimestamp = None
+
+    header = {
+        "firstCycleOffsetBytes": 8,
+        "lineHeaderSizeBytes": 40,
+        "bytesPerCycle": 40,
+        "linesPerCycle": 1,
+    }
+    monkeypatch.setattr(
+        datafile_module,
+        "load_file_header_v2",
+        lambda _datafile, _raw_data: (header, 0),
+    )
+
+    datafile.load_file_header()
+
+    assert datafile.numCycles == 0
+    assert datafile.firstLineTimestamp is None

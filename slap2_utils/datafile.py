@@ -101,7 +101,7 @@ class DataFile():
         self.lineDataNumElements = []
         self.lineDataStartIdxs = []
         self.numCycles=0
-        self.firstLineTimestamp = np.uint64(0)
+        self.firstLineTimestamp = None
 
         self._load_file()
          
@@ -220,13 +220,14 @@ class DataFile():
         self.lineDataNumElements = [int(x) for x in self.lineDataNumElements]
         self.lineDataStartIdxs = [int(x) for x in self.lineDataStartIdxs]
 
-        if 'referenceTimestamp' not in header:
-            header['referenceTimestamp'] = np.uint64(0)
-            first_line_header = self.getLineHeader(1, 1)
-            header['referenceTimestamp'] = first_line_header['timestamp']
+        if self.numCycles > 0:
+            if 'referenceTimestamp' not in header:
+                header['referenceTimestamp'] = np.uint64(0)
+                first_line_header = self.getLineHeader(1, 1)
+                header['referenceTimestamp'] = first_line_header['timestamp']
 
-        first_line_header = self.getLineHeader(1, 1)
-        self.firstLineTimestamp = first_line_header['timestamp']
+            first_line_header = self.getLineHeader(1, 1)
+            self.firstLineTimestamp = first_line_header['timestamp']
 
     def getLineHeader(self, lineIndices, cycleIndices):
         """Get parsed line headers from the data file.
