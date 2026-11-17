@@ -14,25 +14,23 @@ The `slap2-utils` library is designed to facilitate the reading of SLAP2 (Scanne
 
 SLAP2 line headers contain the microscope's recorded online X/Y motion offsets
 in pixels, Z offset in micrometers, FPGA timestamp, acquisition flags, and line
-identifiers. They can be read from a single file with `DataFile` or across
-cycle-split files with `MultiDataFiles`:
+identifiers. Both reader classes expose the same API: use `DataFile` for one
+`.dat` file or `MultiDataFiles` for a recording split across cycle files.
 
 ```python
-from slap2_utils.datafile import DataFile
 from slap2_utils.multidatafiles import MultiDataFiles
 
-data_file = DataFile("recording.dat")
-header = data_file.getLineHeader(1, 1)
-
 multi_file = MultiDataFiles("recording-CYCLE1.dat")
+header = multi_file.getLineHeader(1, 1)
 x_pixels, y_pixels, z_um = multi_file.getOnlineMotion([1, 303, 605])
 ```
 
-`getLineHeader` and `getOnlineMotion` use one-based indices for compatibility
-with the existing reader API and MATLAB. `getOnlineMotion` accepts global line
-IDs and preserves request order. These methods
-expose offsets recorded by the microscope; they do not spatially warp or
-motion-correct fluorescence data.
+Use one reader instance; the choice depends only on whether the recording is
+stored in one file or several. Both methods use one-based indices for
+compatibility with the existing reader API and MATLAB. `getOnlineMotion`
+accepts global line IDs and preserves request order. It exposes offsets recorded
+by the microscope; it does not spatially warp or motion-correct fluorescence
+data.
 
 ## Installation
 Install with pip
