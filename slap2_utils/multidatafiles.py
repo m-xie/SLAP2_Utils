@@ -231,10 +231,21 @@ class MultiDataFiles:
         if lineValues.size != cycleValues.size:
             raise ValueError("Number of cycle indices must match number of line indices")
 
+        try:
+            finite = np.all(np.isfinite(lineValues)) and np.all(np.isfinite(cycleValues))
+            integral = (np.all(lineValues == np.floor(lineValues)) and
+                        np.all(cycleValues == np.floor(cycleValues)))
+        except TypeError as exc:
+            raise ValueError("All indices must be finite integers") from exc
+        if not finite or not integral:
+            raise ValueError("All indices must be finite integers")
+
+        lineValues = lineValues.astype(np.int64)
+        cycleValues = cycleValues.astype(np.int64)
+
         _, _, fileIndices, localCycles = self.getLineDataIdxs(
             lineValues, cycleValues
         )
-        lineValues = lineValues.astype(np.int64)
         outputs = [None] * lineValues.size
         for fileIndex in np.unique(fileIndices):
             mask = fileIndices == fileIndex
@@ -247,39 +258,3 @@ class MultiDataFiles:
                 outputs[outputIndex] = header
 
         return outputs[0] if scalarResult else outputs
-
-    def getOnlineMotion(self, lineIds=None):
-        """Read online offsets for one-based global line IDs."""
-        linesPerCycle = int(self.header['linesPerCycle'])
-        totalLines = self.totalNumLines
-        if lineIds is None:
-            lineIds = np.arange(1, totalLines + 1, linesPerCycle, dtype=np.int64)
-
-        values = np.asarray(lineIds).ravel()
-        if values.size == 0:
-            empty = np.empty(0, dtype=np.float64)
-            return empty.copy(), empty.copy(), empty
-        try:
-            valid = (np.all(np.isfinite(values)) and
-                     np.all(values == np.floor(values)) and
-                     np.all(values >= 1) and np.all(values <= totalLines))
-        except TypeError:
-            valid = False
-        if not valid:
-            raise ValueError(
-                f"lineIds must be finite integer indices in [1, {totalLines}]"
-            )
-
-        values = values.astype(np.int64)
-        lineIndices = (values - 1) % linesPerCycle + 1
-        cycleIndices = (values - 1) // linesPerCycle + 1
-        headers = self.getLineHeader(lineIndices, cycleIndices)
-        if isinstance(headers, dict):
-            headers = [headers]
-
-        x = np.asarray([header['xOffset_pix'] for header in headers], dtype=np.float64)
-        y = np.asarray([header['yOffset_pix'] for header in headers], dtype=np.float64)
-        z = np.asarray([header['zOffset_um'] for header in headers], dtype=np.float64)
-        return x, y, z
-
-

@@ -72,48 +72,28 @@ def test_multidatafiles_get_line_header_scalar():
     assert header["xOffset_pix"] == 202
 
 
-def test_multidatafiles_get_online_motion_uses_one_based_global_ids():
+@pytest.mark.parametrize(
+    "line_indices,cycle_indices",
+    [
+        ([1.5], [1]),
+        ([1], [1.5]),
+        ([np.nan], [1]),
+        ([1], [np.inf]),
+        (["one"], [1]),
+    ],
+)
+def test_multidatafiles_get_line_header_rejects_noninteger_indices(
+        line_indices, cycle_indices):
+    multifile = make_multifile()
+
+    with pytest.raises(ValueError, match="finite integers"):
+        multifile.getLineHeader(line_indices, cycle_indices)
+
+
+def test_multidatafiles_get_line_header_accepts_integer_valued_floats():
     multifile = make_multifile()
     multifile._sort_files_in_place()
 
-    x, y, z = multifile.getOnlineMotion([9, 1, 5, 9])
+    header = multifile.getLineHeader(2.0, 3.0)
 
-    np.testing.assert_array_equal(x, [203.0, 101.0, 102.0, 203.0])
-    np.testing.assert_array_equal(y, [-201.0, -101.0, -102.0, -201.0])
-    np.testing.assert_allclose(z, [2.1, 1.1, 1.2, 2.1])
-    assert x.shape == y.shape == z.shape == (4,)
-
-
-def test_multidatafiles_get_online_motion_defaults_to_one_line_per_cycle():
-    multifile = make_multifile()
-    multifile._sort_files_in_place()
-
-    x, _, _ = multifile.getOnlineMotion()
-
-    np.testing.assert_array_equal(x, [101.0, 101.0, 201.0])
-
-
-@pytest.mark.parametrize("line_ids", [[0], [10], [1.5], [np.nan]])
-def test_multidatafiles_get_online_motion_rejects_invalid_ids(line_ids):
-    multifile = make_multifile()
-
-    with pytest.raises(ValueError, match="lineIds"):
-        multifile.getOnlineMotion(line_ids)
-
-
-def test_datafile_get_online_motion_uses_one_based_global_ids():
-    from slap2_utils.datafile import DataFile
-
-    datafile = DataFile.__new__(DataFile)
-    datafile.header = {"linesPerCycle": 3}
-    datafile.numCycles = 2
-    datafile.getLineHeader = lambda lines, cycles: [
-        {"xOffset_pix": line, "yOffset_pix": -cycle, "zOffset_um": line + cycle / 10}
-        for line, cycle in zip(np.asarray(lines).ravel(), np.asarray(cycles).ravel())
-    ]
-
-    x, y, z = datafile.getOnlineMotion([6, 1, 4])
-
-    np.testing.assert_array_equal(x, [3.0, 1.0, 1.0])
-    np.testing.assert_array_equal(y, [-2.0, -1.0, -2.0])
-    np.testing.assert_allclose(z, [3.2, 1.1, 1.2])
+    assert header["xOffset_pix"] == 202

@@ -293,52 +293,6 @@ class DataFile():
 
         return headers[0] if scalarResult else headers
 
-    def getOnlineMotion(self, lineIds=None):
-        """Read online motion offsets for one-based global line IDs.
-
-        Parameters
-        ----------
-        lineIds : array_like, optional
-            One-based global line IDs. By default, read the first line of
-            every cycle.
-
-        Returns
-        -------
-        tuple of numpy.ndarray
-            One-dimensional X pixel, Y pixel, and Z micrometer offsets.
-        """
-        linesPerCycle = int(self.header['linesPerCycle'])
-        totalLines = linesPerCycle * self.numCycles
-        if lineIds is None:
-            lineIds = np.arange(1, totalLines + 1, linesPerCycle, dtype=np.int64)
-
-        values = np.asarray(lineIds).ravel()
-        if values.size == 0:
-            empty = np.empty(0, dtype=np.float64)
-            return empty.copy(), empty.copy(), empty
-        try:
-            valid = (np.all(np.isfinite(values)) and
-                     np.all(values == np.floor(values)) and
-                     np.all(values >= 1) and np.all(values <= totalLines))
-        except TypeError:
-            valid = False
-        if not valid:
-            raise ValueError(
-                f"lineIds must be finite integer indices in [1, {totalLines}]"
-            )
-
-        values = values.astype(np.int64)
-        cycleIndices = (values - 1) // linesPerCycle + 1
-        lineIndices = (values - 1) % linesPerCycle + 1
-        headers = self.getLineHeader(lineIndices, cycleIndices)
-        if isinstance(headers, dict):
-            headers = [headers]
-
-        x = np.asarray([header['xOffset_pix'] for header in headers], dtype=np.float64)
-        y = np.asarray([header['yOffset_pix'] for header in headers], dtype=np.float64)
-        z = np.asarray([header['zOffset_um'] for header in headers], dtype=np.float64)
-        return x, y, z
-
     def getLineData(self, lineIndices, cycleIndices, iChannel=None, method="Cython"):
         """Get line data from the data file.
 
