@@ -41,7 +41,6 @@ def test_parse_40_byte_line_header():
     assert header["zOffset_um"] == np.float32(12.5)
     assert header["zFeedback_um"] == np.float32(-3.25)
     assert header["timestamp_s"] == pytest.approx(1e-6)
-    assert header["timestamp_date"] is None
     assert header["flags"] == {
         "startOfAcq": True,
         "endOfAcq": True,

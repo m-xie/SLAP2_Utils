@@ -90,5 +90,4 @@ def parseLineHeader(data, fpgaSystemClock_Hz=None, referenceTimestamp=None):
         "zFeedback_um": np.float32(zFeedback_um),
         "flags": decodeLineHeaderFlags(rawFlags),
         "timestamp_s": timestamp_s,
-        "timestamp_date": None,
     }
