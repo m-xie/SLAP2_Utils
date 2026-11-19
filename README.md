@@ -10,6 +10,28 @@ The `slap2-utils` library is designed to facilitate the reading of SLAP2 (Scanne
 - **Trace Extraction**: Tools to extract and generate traces from ROIs imaged in integrated scan mode.
 - **Data Inspection**: A GUI to inspect and review data stored in the binary file.
 
+## Line headers
+
+SLAP2 line headers contain the microscope's recorded online X/Y motion offsets
+in pixels, Z offset in micrometers, FPGA timestamp, acquisition flags, and line
+identifiers. Use `DataFile` for one `.dat` file or `MultiDataFiles` for a
+recording split across cycle files.
+
+```python
+from slap2_utils.multidatafiles import MultiDataFiles
+
+multi_file = MultiDataFiles("recording-CYCLE1.dat")
+header = multi_file.getLineHeader(1, 1)
+x_pixels = header["xOffset_pix"]
+y_pixels = header["yOffset_pix"]
+z_um = header["zOffset_um"]
+```
+
+`getLineHeader` uses one-based line-within-cycle and cycle indices for
+compatibility with the existing reader API and MATLAB. It exposes offsets
+recorded by the microscope; analysis packages are responsible for selecting,
+formatting, or applying those offsets.
+
 ## Installation
 Install with pip
 ```bash
