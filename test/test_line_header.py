@@ -18,8 +18,9 @@ def make_header(size=40, magic=LINE_HEADER_MAGIC):
         34,
         807_174_241_722,
     )
-    if size == 40:
-        return base + struct.pack("<ff", 12.5, -3.25)
+    if size >= 40:
+        known_fields = base + struct.pack("<ff", 12.5, -3.25)
+        return known_fields + bytes(size - len(known_fields))
     return base[:size]
 
 
@@ -59,9 +60,17 @@ def test_parse_32_byte_line_header_defaults_optional_z_fields():
     assert np.isnan(header["timestamp_s"])
 
 
-@pytest.mark.parametrize("size", [0, 31, 33, 39, 41])
+def test_parse_48_byte_line_header_ignores_extension_bytes():
+    header = parseLineHeader(make_header(size=48))
+
+    assert header["lineNumber"] == np.uint32(17)
+    assert header["zOffset_um"] == np.float32(12.5)
+    assert header["zFeedback_um"] == np.float32(-3.25)
+
+
+@pytest.mark.parametrize("size", [0, 31, 33, 39])
 def test_parse_line_header_rejects_unsupported_lengths(size):
-    with pytest.raises(ValueError, match="32 or 40 bytes"):
+    with pytest.raises(ValueError, match="exactly 32 or at least 40 bytes"):
         parseLineHeader(bytes(size))
 
 

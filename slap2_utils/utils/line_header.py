@@ -37,7 +37,7 @@ def decodeLineHeaderTimestamp(timestamp, fpgaSystemClock_Hz=None,
 
 
 def parseLineHeader(data, fpgaSystemClock_Hz=None, referenceTimestamp=None):
-    """Parse a 32-byte or 40-byte SLAP2 line header.
+    """Parse a SLAP2 line header, ignoring bytes after the known fields.
 
     Parameters
     ----------
@@ -54,8 +54,10 @@ def parseLineHeader(data, fpgaSystemClock_Hz=None, referenceTimestamp=None):
         Parsed fields using the MATLAB reader's public field names.
     """
     raw = memoryview(data).cast("B")
-    if len(raw) not in (32, 40):
-        raise ValueError("SLAP2 line headers must contain exactly 32 or 40 bytes")
+    if len(raw) != 32 and len(raw) < 40:
+        raise ValueError(
+            "SLAP2 line headers must contain exactly 32 or at least 40 bytes"
+        )
 
     (lineSizeBytes, magicNumber, lineNumber, acqNumber, rawFlags,
      xOffset_pix, yOffset_pix, timestamp) = _BASE_HEADER.unpack_from(raw)
@@ -65,7 +67,7 @@ def parseLineHeader(data, fpgaSystemClock_Hz=None, referenceTimestamp=None):
             "SLAP2 line-header magic number does not match the expected value"
         )
 
-    if len(raw) == 40:
+    if len(raw) >= 40:
         zOffset_um, zFeedback_um = _Z_FIELDS.unpack_from(raw, 32)
     else:
         zOffset_um = 0.0
